@@ -121,6 +121,9 @@ def _regression(results: dict, prev: dict, name: str | None, t: Targets) -> list
     if prev.get("mode") != results["mode"] or prev.get("fixture") != results["fixture"]:
         return [_row(label, "same fixture and mode", None, NA,
                      f"previous was {prev.get('fixture')}/{prev.get('mode')}")]
+    if prev.get("model") != results.get("model"):
+        return [_row(label, "same model", None, NA,
+                     f"previous used {prev.get('model')}, this run {results.get('model')}")]
     old = prev["strategies"].get(name, {}).get("summary") if name else None
     new = results["strategies"][name]["summary"] if name else None
     if not old or not new:

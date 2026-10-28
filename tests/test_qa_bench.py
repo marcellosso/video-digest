@@ -144,6 +144,23 @@ def test_gate_against_previous_run():
     assert s["accuracy vs previous run"] == PASS and s["input tokens vs previous run"] == PASS
 
 
+def test_gate_against_needs_the_same_model():
+    prev = results_with(0.71, 1.0, 41049, 6000)
+    prev["model"] = "claude-sonnet-5-5"
+    new = results_with(0.71, 0.5, 41049, 9000)
+    new["model"] = "claude-opus-5-5"
+    assert statuses(check(new, against=prev))["vs previous run"] == NA
+
+
+def test_showreel_reference_results_are_comparable():
+    ref = json.loads((FIXTURES_DIR / "showreel" / "reference-results.json").read_text())
+    meta = json.loads((FIXTURES_DIR / "showreel" / "questions.json").read_text())
+    assert (ref["fixture"], ref["mode"], ref["runs"]) == ("showreel", "live", 3)
+    assert ref["video_sha256"] == meta["sha256"]
+    assert [q["id"] for q in ref["questions"]] == [q["id"] for q in meta["questions"]]
+    assert ref["gate"]["passed"]
+
+
 def test_summarize_consistency():
     runs = [{"input_tokens": 10, "grades": {"a": [True, ""], "b": [True, ""]}},
             {"input_tokens": 20, "grades": {"a": [True, ""], "b": [False, ""]}},

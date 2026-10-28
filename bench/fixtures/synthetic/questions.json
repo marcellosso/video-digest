@@ -121,9 +121,9 @@
     {
       "id": "motion",
       "type": "motion",
-      "question": "What moves during the live demo, and how does it move?",
+      "question": "What moves during the live demo, and does the 'Live demo' text move too?",
       "check": "judge",
-      "answer": "A red/orange ball (circle) moves around the screen along a looping, curved path.",
+      "answer": "A red/orange ball (circle) moves around the screen, visiting many different positions; the 'Live demo' text stays still in the middle. Smooth vs. jumping motion does not matter.",
       "evidence": [
         {
           "start": 45,
