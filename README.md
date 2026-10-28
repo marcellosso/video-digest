@@ -1,7 +1,7 @@
 # video-digest
 Open-source engine: video → digest (keyframes / contact sheets + timeline) so AI models read fewer tokens with better accuracy
 
-> Early development. The engine, CLI, MCP server and benchmark work locally; nothing is published yet.
+> Early development. The engine, CLI, MCP server, Claude Code plugin and benchmark work locally; nothing is published yet.
 
 ## Install (local, editable)
 
@@ -76,6 +76,37 @@ Claude Desktop (`claude_desktop_config.json`) and other clients that use the `mc
 ```
 
 Use absolute paths for the command and for videos. Set `VIDEO_DIGEST_CACHE` because clients may start the server in a directory it can't write to. Otherwise the default `./.video-digest` is resolved from wherever the server was started. `ffmpeg` and `ffprobe` must be on the server's `PATH`. If your client launches it with a minimal `PATH`, add one in `env`.
+
+## Claude Code plugin
+
+`plugin/` is a Claude Code plugin with a `digest` skill. The skill starts the MCP server above and tells the model to digest the video once, answer from the timeline and sheets, and call `get_frames` only for moments it needs a closer look at.
+
+```
+/digest ./bug-repro.mp4 why does the save button stop working?
+```
+
+The full name is `/video-digest:digest`. Plain `/digest` works too unless another plugin or skill also has a `digest`. With no question, the skill summarizes the video with timestamps. Claude also picks up the skill on its own when you ask about a video file. Follow-up questions in the same session reuse the digest without rebuilding it.
+
+Install:
+
+```bash
+brew install ffmpeg                           # or your package manager; ffprobe comes with it
+git clone https://github.com/marcellosso/video-digest && cd video-digest
+uv venv && uv pip install -e '.[mcp]'         # the plugin needs the mcp extra
+claude --plugin-dir ./plugin                  # load the plugin for this session
+```
+
+The plugin runs `video-digest-mcp` from your `PATH`. If it isn't on your `PATH` (for example, because the venv isn't activated), point the plugin at it with `VIDEO_DIGEST_MCP` before you start Claude Code:
+
+```bash
+export VIDEO_DIGEST_MCP=/path/to/video-digest/.venv/bin/video-digest-mcp
+```
+
+Digests are cached in `~/.cache/video-digest`. `ffmpeg` and `ffprobe` must be on the `PATH` that Claude Code starts with. Run `/mcp` to check that `plugin:video-digest:video-digest` is connected.
+
+The skill pre-approves the two tools for the turn that runs `/digest`. For follow-ups without permission prompts, add `"mcp__plugin_video-digest_video-digest"` to `permissions.allow` in your Claude Code settings.
+
+To check the plugin layout, run `claude plugin validate ./plugin`. The plugin isn't in a marketplace yet. Load it with `--plugin-dir`.
 
 ## Digest format
 
