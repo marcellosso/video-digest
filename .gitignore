@@ -6,3 +6,6 @@ dist/
 build/
 .pytest_cache/
 .video-digest/
+bench/.cache/
+bench/out/
+bench/fixtures/showreel/*.mp4

@@ -1,0 +1,1072 @@
+{
+  "fixture": "showreel",
+  "video": "benchmarket-showreel.mp4",
+  "video_sha256": "4eebf3cfca6b4e47292d7a8b7a26b630eaee3c4ef2844b47b55ba3ad45efc97d",
+  "duration": 31.5,
+  "width": 1920,
+  "height": 1080,
+  "mode": "live",
+  "model": "claude-sonnet-5-5",
+  "judge_model": "claude-haiku-5-5",
+  "runs": 3,
+  "token_profile": "highres",
+  "baseline_every": 2.0,
+  "reference_mode": false,
+  "questions": [
+    {
+      "id": "brand",
+      "type": "fact recall",
+      "question": "What is the name of the product being advertised?",
+      "check": "contains",
+      "answer": [
+        "benchmarket",
+        "bench market"
+      ]
+    },
+    {
+      "id": "tagline",
+      "type": "fact recall",
+      "question": "What descriptor appears under the logo the first time it is shown?",
+      "check": "contains",
+      "answer": [
+        "hiring intelligence"
+      ]
+    },
+    {
+      "id": "scramble",
+      "type": "mid-animation trap",
+      "question": "Complete the opening line: 'Your ATS tracks ___.'",
+      "check": "contains",
+      "answer": [
+        "everything"
+      ]
+    },
+    {
+      "id": "doesnt",
+      "type": "fact recall",
+      "question": "According to the video, what is the one thing an ATS doesn't do?",
+      "check": "contains",
+      "answer": [
+        "think"
+      ]
+    },
+    {
+      "id": "platforms",
+      "type": "number",
+      "question": "How many ATS platforms does it claim to work with?",
+      "check": "number",
+      "answer": 50,
+      "tol": 0
+    },
+    {
+      "id": "names",
+      "type": "fine detail",
+      "question": "Name three of the ATS platforms shown.",
+      "check": "judge",
+      "answer": "Any three of: Workday, Greenhouse, Lever, Ashby, BambooHR, Bullhorn, Personio, Jobvite, Comeet, JazzHR, Workable, Recruitee, Teamtailor, Breezy, iCIMS, Pinpoint, SmartRecruiters, Rippling."
+    },
+    {
+      "id": "dropoff",
+      "type": "fine detail",
+      "question": "In the live monitoring view, at which funnel stage is a drop-off flagged, and how big is it?",
+      "check": "judge",
+      "answer": "At the Phone Screen stage, a 42% drop-off."
+    },
+    {
+      "id": "ask",
+      "type": "short event",
+      "question": "What question is typed into the 'Ask your data' box?",
+      "check": "judge",
+      "answer": "Why did time-to-hire increase this quarter?"
+    },
+    {
+      "id": "nomore",
+      "type": "short event",
+      "question": "The video says something is no longer needed. What?",
+      "check": "contains",
+      "answer": [
+        "deck"
+      ]
+    },
+    {
+      "id": "recipients",
+      "type": "counting",
+      "question": "How many recipients or groups receive the weekly performance report?",
+      "check": "number",
+      "answer": 4,
+      "tol": 0
+    },
+    {
+      "id": "order",
+      "type": "ordering",
+      "question": "Which comes first: the 'Recommendations' section or the 'Weekly Performance Report'?",
+      "check": "judge",
+      "answer": "The Recommendations section comes first."
+    },
+    {
+      "id": "logo_time",
+      "type": "timing",
+      "question": "At about what time (in seconds) does the full-screen logo first appear?",
+      "check": "number",
+      "answer": 6,
+      "tol": 2
+    },
+    {
+      "id": "closing",
+      "type": "fact recall",
+      "question": "What is the closing tagline?",
+      "check": "judge",
+      "answer": "Run recruiting on intelligence. Not intuition."
+    },
+    {
+      "id": "cta",
+      "type": "fact recall",
+      "question": "What is the call to action at the very end?",
+      "check": "contains",
+      "answer": [
+        "demo"
+      ]
+    },
+    {
+      "id": "price",
+      "type": "hallucination check",
+      "question": "Is any price or pricing plan shown in the video? Answer yes or no.",
+      "check": "yesno",
+      "answer": "no"
+    }
+  ],
+  "build": {
+    "seconds": 2.56,
+    "ratio": 0.081,
+    "keyframes": 23,
+    "sheets": 3,
+    "settings": {
+      "sample_fps": 4.0,
+      "threshold": 1.5,
+      "min_gap": 2.0,
+      "max_gap": 60.0,
+      "settle": true,
+      "settle_threshold": 3.0,
+      "settle_window": 1.5,
+      "settle_hold": 0.5,
+      "cut_threshold": 50.0,
+      "scene_ends": true
+    },
+    "engine_version": "0.1.0.dev0"
+  },
+  "strategies": {
+    "baseline": {
+      "images": 15,
+      "frames_shown": 15,
+      "estimated_input_tokens": 40431,
+      "prep_seconds": 1.0,
+      "runs": [
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "ELYEN6XUGZ (scrambled text, as shown in the frame)",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Greenhouse, Workday, BambooHR",
+            "dropoff": "Phone Screen, 42% drop-off",
+            "ask": "unknown (the box only shows 'Ask anything' with a cursor; no typed question is visible)",
+            "nomore": "Likely the manually built recruiting update deck (Recruiting_Update_FINAL_v7.pptx), but the frame shows only 'No' so this is uncertain",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations comes first",
+            "logo_time": "About 6 seconds",
+            "closing": "Run Recruiting (the line is incomplete in the frames)",
+            "cta": "unknown",
+            "price": "no"
+          },
+          "input_tokens": 41049,
+          "first_turn_input_tokens": 41049,
+          "billed_input_tokens": 51310,
+          "output_tokens": 316,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 7.5,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              false,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three platforms (Greenhouse, Workday, BambooHR) that all appear in the reference list of ATS platforms shown, satisfying the 'any three' requirement."
+            ],
+            "dropoff": [
+              true,
+              "The answer identifies the same funnel stage (Phone Screen) and the same drop-off size (42%) as the reference answer, with only minor wording differences."
+            ],
+            "ask": [
+              false,
+              "The answer claims no question is visible and gives 'unknown,' whereas the reference states the typed question is 'Why did time-to-hire increase this quarter?', so the key fact is missing."
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer states that Recommendations comes first, which matches the reference answer's essential information with only minor wording differences."
+            ],
+            "logo_time": [
+              true,
+              "parsed 6.0"
+            ],
+            "closing": [
+              false,
+              "The answer gives only the partial phrase \"Run Recruiting\" and claims the line is incomplete, missing the key content \"on intelligence. Not intuition.\" of the reference tagline."
+            ],
+            "cta": [
+              false,
+              "no answer"
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        },
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "ELYEN6XUGZ (a scrambled string of characters)",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Greenhouse, Workday, BambooHR",
+            "dropoff": "Phone Screen, 42% drop-off",
+            "ask": "unknown (the box only shows 'Ask anything' with a cursor)",
+            "nomore": "Likely the manually built recruiting update deck (Recruiting_Update_FINAL_v7.pptx); the text 'No' is visible but cut off",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations",
+            "logo_time": "6",
+            "closing": "Run Recruiting (the text is cut off after 'Run Recruiting')",
+            "cta": "unknown",
+            "price": "no"
+          },
+          "input_tokens": 41049,
+          "first_turn_input_tokens": 41049,
+          "billed_input_tokens": 51310,
+          "output_tokens": 295,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 6.8,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              false,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three platforms (Greenhouse, Workday, BambooHR) that all appear in the reference list of ATS platforms shown in the video, which satisfies the 'any three' requirement."
+            ],
+            "dropoff": [
+              true,
+              "The answer identifies the same funnel stage (Phone Screen) and the same drop-off size (42%) as the reference answer, with only minor wording differences."
+            ],
+            "ask": [
+              false,
+              "The answer claims the box only shows 'Ask anything' with a cursor and gives no question, whereas the reference states the typed question is 'Why did time-to-hire increase this quarter?'."
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer 'Recommendations' identifies the same section as coming first, matching the reference answer's essential information."
+            ],
+            "logo_time": [
+              true,
+              "parsed 6.0"
+            ],
+            "closing": [
+              false,
+              "The answer gives only the partial phrase 'Run Recruiting' and omits the key tagline content 'on intelligence. Not intuition.', so it does not convey the full essential information of the reference."
+            ],
+            "cta": [
+              false,
+              "no answer"
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        },
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "ELYEN6XUGZ (scrambled text, as shown)",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Greenhouse, Workday, BambooHR",
+            "dropoff": "Phone Screen, 42% drop-off",
+            "ask": "unknown (the box only shows 'Ask anything' placeholder)",
+            "nomore": "Manually built slide decks like 'Recruiting_Update_FINAL_v7.pptx' (the text 'No...' is cut off)",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations",
+            "logo_time": "6",
+            "closing": "Run Recruiting (the sentence is cut off in the frames)",
+            "cta": "unknown",
+            "price": "no"
+          },
+          "input_tokens": 41049,
+          "first_turn_input_tokens": 41049,
+          "billed_input_tokens": 51310,
+          "output_tokens": 286,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 7.2,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              false,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three platforms (Greenhouse, Workday, BambooHR), all of which appear in the reference list of acceptable ATS platforms, satisfying the request for any three."
+            ],
+            "dropoff": [
+              true,
+              "The answer names the same funnel stage (Phone Screen) and the same drop-off size (42%) as the reference answer, with only minor wording differences."
+            ],
+            "ask": [
+              false,
+              "The answer says the box is empty showing only a placeholder, while the reference states the question 'Why did time-to-hire increase this quarter?' is typed into it, so the key fact is missing and contradicted."
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer 'Recommendations' identifies the same section as coming first, matching the reference answer's essential information."
+            ],
+            "logo_time": [
+              true,
+              "parsed 6.0"
+            ],
+            "closing": [
+              false,
+              "The answer gives only a partial fragment 'Run Recruiting' and claims the sentence is cut off, missing the key tagline wording 'Run recruiting on intelligence. Not intuition.'"
+            ],
+            "cta": [
+              false,
+              "no answer"
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "graded": 15,
+        "accuracy": 0.7333333333333333,
+        "accuracy_min": 0.7333333333333333,
+        "accuracy_max": 0.7333333333333333,
+        "consistent": 15,
+        "consistency": 1.0,
+        "input_tokens": 41049,
+        "zoom_rounds_mean": 0,
+        "zoom_rounds_max": 0,
+        "cost_usd": 0.10561
+      }
+    },
+    "digest_nozoom": {
+      "images": 3,
+      "frames_shown": 23,
+      "estimated_input_tokens": 5081,
+      "prep_seconds": 2.56,
+      "runs": [
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "EVERYTHING",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Workday, Ashby, BambooHR",
+            "dropoff": "Phone Screen, -42%",
+            "ask": "Why did time-to-hire increase this quarter?",
+            "nomore": "Decks (manual recruiting update decks)",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations",
+            "logo_time": "about 5.8 seconds (appears ~5.8\u20136.0s)",
+            "closing": "Run Recruiting on Intelligence. Not Intuition.",
+            "cta": "Schedule a demo (benchmarket.ai)",
+            "price": "no"
+          },
+          "input_tokens": 6041,
+          "first_turn_input_tokens": 6041,
+          "billed_input_tokens": 7550,
+          "output_tokens": 264,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 3.2,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              true,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three platforms (Workday, Ashby, BambooHR) that all appear in the reference list of ATS platforms shown, satisfying the 'any three' requirement."
+            ],
+            "dropoff": [
+              true,
+              "The answer identifies the Phone Screen stage and a 42% drop-off, matching the reference; the minus sign merely indicates decline and does not contradict the magnitude."
+            ],
+            "ask": [
+              true,
+              "The answer exactly matches the reference question text, 'Why did time-to-hire increase this quarter?', with no discrepancies."
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer 'Recommendations' identifies the same section as coming first, matching the reference answer's key fact."
+            ],
+            "logo_time": [
+              true,
+              "parsed 5.8"
+            ],
+            "closing": [
+              true,
+              "The answer gives the same tagline, differing only in capitalization, which is not a substantive difference."
+            ],
+            "cta": [
+              true,
+              ""
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        },
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "EVERYTHING",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Workday, Greenhouse, Ashby",
+            "dropoff": "Phone Screen, -42%",
+            "ask": "Why did time-to-hire increase this quarter?",
+            "nomore": "Decks (manual slide decks / reporting decks)",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations",
+            "logo_time": "About 5.8 seconds",
+            "closing": "Run Recruiting on Intelligence. Not Intuition.",
+            "cta": "Schedule a demo at benchmarket.ai",
+            "price": "no"
+          },
+          "input_tokens": 6041,
+          "first_turn_input_tokens": 6041,
+          "billed_input_tokens": 7550,
+          "output_tokens": 253,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 3.1,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              true,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three ATS platforms (Workday, Greenhouse, Ashby) that all appear in the reference list of acceptable platforms, satisfying the question's request for any three."
+            ],
+            "dropoff": [
+              true,
+              "The answer identifies the same stage (Phone Screen) and the same magnitude (42%), with the minus sign simply denoting a drop-off, which is consistent with the reference's 42% drop-off."
+            ],
+            "ask": [
+              true,
+              "The answer exactly matches the reference question text, 'Why did time-to-hire increase this quarter?', with no differences in key content."
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer 'Recommendations' identifies the same section as coming first, matching the reference answer's essential information."
+            ],
+            "logo_time": [
+              true,
+              "parsed 5.8"
+            ],
+            "closing": [
+              true,
+              "The answer gives the same tagline with only capitalization differences, which are not meaningful wording differences."
+            ],
+            "cta": [
+              true,
+              ""
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        },
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "EVERYTHING",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Workday, Ashby, BambooHR",
+            "dropoff": "Phone Screen stage, \u221242% drop-off",
+            "ask": "Why did time-to-hire increase this quarter?",
+            "nomore": "Decks (manual recruiting update decks)",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations",
+            "logo_time": "about 4 seconds (around 00:04\u201300:05.8)",
+            "closing": "Run Recruiting on Intelligence. Not Intuition.",
+            "cta": "Schedule a demo \u2192 (benchmarket.ai)",
+            "price": "no"
+          },
+          "input_tokens": 6041,
+          "first_turn_input_tokens": 6041,
+          "billed_input_tokens": 7550,
+          "output_tokens": 268,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 3.3,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              true,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three platforms (Workday, Ashby, BambooHR) that all appear in the reference list of ATS platforms shown in the video, which satisfies the question's request for any three."
+            ],
+            "dropoff": [
+              true,
+              "The answer identifies the same stage (Phone Screen) and the same magnitude (42%), with the minus sign simply indicating a drop-off, which is consistent with the reference's 'drop-off' wording."
+            ],
+            "ask": [
+              true,
+              "The answer exactly matches the reference question text: 'Why did time-to-hire increase this quarter?'"
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer 'Recommendations' identifies the same section as coming first, matching the reference answer's essential information."
+            ],
+            "logo_time": [
+              true,
+              "parsed 4.0"
+            ],
+            "closing": [
+              true,
+              "The answer gives the same tagline as the reference, differing only in capitalization, which is not a substantive difference."
+            ],
+            "cta": [
+              true,
+              ""
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "graded": 15,
+        "accuracy": 1.0,
+        "accuracy_min": 1.0,
+        "accuracy_max": 1.0,
+        "consistent": 15,
+        "consistency": 1.0,
+        "input_tokens": 6041,
+        "zoom_rounds_mean": 0,
+        "zoom_rounds_max": 0,
+        "cost_usd": 0.017716666666666665
+      }
+    },
+    "digest": {
+      "images": 3,
+      "frames_shown": 23,
+      "estimated_input_tokens": 5173,
+      "prep_seconds": 2.56,
+      "runs": [
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "EVERYTHING",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Workday, Greenhouse, Ashby (also Lever, BambooHR, Jobvite, etc.)",
+            "dropoff": "Phone Screen, \u221242%",
+            "ask": "Why did time-to-hire increase this quarter?",
+            "nomore": "Decks (manual recruiting update decks)",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations",
+            "logo_time": "about 5.8 seconds",
+            "closing": "Run Recruiting on Intelligence. Not Intuition.",
+            "cta": "Schedule a demo \u2192 (benchmarket.ai)",
+            "price": "no"
+          },
+          "input_tokens": 6591,
+          "first_turn_input_tokens": 6591,
+          "billed_input_tokens": 8238,
+          "output_tokens": 274,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 4.0,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              true,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three ATS platforms (Workday, Greenhouse, Ashby) that all appear in the reference list, satisfying the question's request for any three."
+            ],
+            "dropoff": [
+              true,
+              "The answer identifies the same funnel stage (Phone Screen) and the same magnitude (42%), with the minus sign simply indicating a drop-off, so it matches the reference."
+            ],
+            "ask": [
+              true,
+              "The answer quotes exactly the same question as the reference answer, with identical wording."
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer 'Recommendations' identifies the same section as coming first, matching the reference answer's essential information."
+            ],
+            "logo_time": [
+              true,
+              "parsed 5.8"
+            ],
+            "closing": [
+              true,
+              "The answer gives the same tagline as the reference, differing only in capitalization, which is a trivial wording difference."
+            ],
+            "cta": [
+              true,
+              ""
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        },
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "EVERYTHING",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Workday, Greenhouse, Ashby",
+            "dropoff": "Phone Screen, \u221242% drop-off",
+            "ask": "Why did time-to-hire increase this quarter?",
+            "nomore": "Decks (manual recruiting update decks)",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations",
+            "logo_time": "about 5.8 seconds",
+            "closing": "Run Recruiting on Intelligence. Not Intuition.",
+            "cta": "Schedule a demo \u2192 (benchmarket.ai)",
+            "price": "no"
+          },
+          "input_tokens": 6591,
+          "first_turn_input_tokens": 6591,
+          "billed_input_tokens": 8238,
+          "output_tokens": 256,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 3.3,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              true,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three platforms (Workday, Greenhouse, Ashby) that all appear in the reference list of ATS platforms shown, which satisfies the 'any three' requirement."
+            ],
+            "dropoff": [
+              true,
+              "The answer identifies the same funnel stage (Phone Screen) and the same magnitude of drop-off (42%), with the minus sign simply indicating a decrease, which is consistent with a drop-off."
+            ],
+            "ask": [
+              true,
+              "The answer quotes the exact same question as the reference answer, with no differences in content."
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer 'Recommendations' identifies the same section as coming first, matching the reference answer's essential information."
+            ],
+            "logo_time": [
+              true,
+              "parsed 5.8"
+            ],
+            "closing": [
+              true,
+              "The answer gives the same tagline with only capitalization differences, which are not meaningful wording changes."
+            ],
+            "cta": [
+              true,
+              ""
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        },
+        {
+          "answers": {
+            "brand": "Benchmarket",
+            "tagline": "Hiring Intelligence",
+            "scramble": "EVERYTHING",
+            "doesnt": "Think",
+            "platforms": "50+",
+            "names": "Workday, Greenhouse, Ashby (also Lever, BambooHR, Jobvite)",
+            "dropoff": "Phone Screen, \u221242%",
+            "ask": "Why did time-to-hire increase this quarter?",
+            "nomore": "Decks (manual recruiting update decks)",
+            "recipients": "4 (CEO, VP Talent, Hiring Managers, Recruiting Team)",
+            "order": "Recommendations",
+            "logo_time": "about 5.8 seconds",
+            "closing": "Run Recruiting on Intelligence. Not Intuition.",
+            "cta": "Schedule a demo \u2192 (benchmarket.ai)",
+            "price": "no"
+          },
+          "input_tokens": 6591,
+          "first_turn_input_tokens": 6591,
+          "billed_input_tokens": 8238,
+          "output_tokens": 270,
+          "zoom_rounds": 0,
+          "zoom_frames": 0,
+          "stop_reason": "end_turn",
+          "latency_s": 3.3,
+          "grades": {
+            "brand": [
+              true,
+              ""
+            ],
+            "tagline": [
+              true,
+              ""
+            ],
+            "scramble": [
+              true,
+              ""
+            ],
+            "doesnt": [
+              true,
+              ""
+            ],
+            "platforms": [
+              true,
+              "parsed 50.0"
+            ],
+            "names": [
+              true,
+              "The answer names three platforms (Workday, Greenhouse, Ashby) that all appear in the reference list, satisfying the question; the extra parenthetical names (Lever, BambooHR, Jobvite) are also in the reference list and do not contradict it."
+            ],
+            "dropoff": [
+              true,
+              "The answer identifies the same funnel stage (Phone Screen) and the same magnitude (42%), with the minus sign simply denoting a drop-off, which is consistent with the reference."
+            ],
+            "ask": [
+              true,
+              "The answer exactly matches the reference question text, 'Why did time-to-hire increase this quarter?'"
+            ],
+            "nomore": [
+              true,
+              ""
+            ],
+            "recipients": [
+              true,
+              "parsed 4.0"
+            ],
+            "order": [
+              true,
+              "The answer 'Recommendations' identifies the same section as coming first as the reference answer, conveying the same key fact with terse but unambiguous wording."
+            ],
+            "logo_time": [
+              true,
+              "parsed 5.8"
+            ],
+            "closing": [
+              true,
+              "The answer gives the same tagline, differing only in capitalization, which is not a substantive difference."
+            ],
+            "cta": [
+              true,
+              ""
+            ],
+            "price": [
+              true,
+              ""
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "graded": 15,
+        "accuracy": 1.0,
+        "accuracy_min": 1.0,
+        "accuracy_max": 1.0,
+        "consistent": 15,
+        "consistency": 1.0,
+        "input_tokens": 6591,
+        "zoom_rounds_mean": 0,
+        "zoom_rounds_max": 0,
+        "cost_usd": 0.01914266666666667
+      }
+    }
+  },
+  "gate": {
+    "strategy": "digest",
+    "targets": {
+      "accuracy_margin": 10.0,
+      "token_ratio": 0.25,
+      "consistency": 0.9,
+      "consistency_min_runs": 3,
+      "zoom_rounds": 3,
+      "build_ratio": 1.0,
+      "accuracy_slack": 0.0,
+      "token_slack": 0.02
+    },
+    "checks": [
+      {
+        "check": "accuracy vs baseline",
+        "target": ">= baseline - 10 pts",
+        "value": "100% vs 73% (+27 pts)",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "input tokens vs baseline",
+        "target": "<= 25%",
+        "value": "6,591 vs 41,049 (16.1%)",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "consistency across runs",
+        "target": ">= 90% of questions",
+        "value": "100% (15/15)",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "zoom rounds",
+        "target": "usually 0, max 3",
+        "value": "mean 0.0, max 0",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "check": "digest build time",
+        "target": "< 1x video length",
+        "value": "2.6s for 31.5s (0.08x)",
+        "status": "PASS",
+        "detail": ""
+      }
+    ],
+    "passed": true,
+    "failed": []
+  }
+}
