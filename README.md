@@ -1,7 +1,7 @@
 # video-digest
 Open-source engine: video → digest (keyframes / contact sheets + timeline) so AI models read fewer tokens with better accuracy
 
-> Early development. The engine works locally; the CLI, MCP server and benchmark are not built yet.
+> Early development. The engine and benchmark work locally; the CLI and MCP server are not built yet.
 
 ## Install (local, editable)
 
@@ -46,4 +46,13 @@ The cache root is `./.video-digest` by default. Override it with `cache_dir=` or
 .venv/bin/pytest
 ```
 
-The tests build a 9-second synthetic video with ffmpeg and never call a model.
+The tests build synthetic videos with ffmpeg and never call a model.
+
+## Benchmark
+
+```bash
+python -m bench.qa_bench synthetic                 # offline: digest vs a frame every 2 s
+python -m bench.qa_bench showreel --live           # real model (needs '.[bench]' and credentials)
+```
+
+Changes to frame selection must pass the quality gate. See [bench/README.md](bench/README.md).

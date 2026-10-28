@@ -16,10 +16,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+bench = ["anthropic>=2.3"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/video_digest"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["tests"]
+pythonpath = ["tests", "."]

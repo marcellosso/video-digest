@@ -1,0 +1,144 @@
+{
+  "about": "The 32 s motion-graphics showreel from the PRD prototype (1920x1080). The video is not in git; set VIDEO_DIGEST_SHOWREEL. Questions have no evidence spans, so accuracy needs --live.",
+  "video": "benchmarket-showreel.mp4",
+  "sha256": "4eebf3cfca6b4e47292d7a8b7a26b630eaee3c4ef2844b47b55ba3ad45efc97d",
+  "reference": {
+    "source": "prototype qa_bench, 3 runs, claude-sonnet-5-5, judge claude-haiku-5-5",
+    "baseline": {
+      "accuracy": 0.71,
+      "input_tokens": 41049
+    },
+    "digest_nozoom": {
+      "accuracy": 0.98,
+      "input_tokens": 6138
+    },
+    "digest": {
+      "accuracy": 1.0,
+      "input_tokens": 6688,
+      "zoom_rounds": 0
+    }
+  },
+  "questions": [
+    {
+      "id": "brand",
+      "type": "fact recall",
+      "question": "What is the name of the product being advertised?",
+      "check": "contains",
+      "answer": [
+        "benchmarket",
+        "bench market"
+      ]
+    },
+    {
+      "id": "tagline",
+      "type": "fact recall",
+      "question": "What descriptor appears under the logo the first time it is shown?",
+      "check": "contains",
+      "answer": [
+        "hiring intelligence"
+      ]
+    },
+    {
+      "id": "scramble",
+      "type": "mid-animation trap",
+      "question": "Complete the opening line: 'Your ATS tracks ___.'",
+      "check": "contains",
+      "answer": [
+        "everything"
+      ]
+    },
+    {
+      "id": "doesnt",
+      "type": "fact recall",
+      "question": "According to the video, what is the one thing an ATS doesn't do?",
+      "check": "contains",
+      "answer": [
+        "think"
+      ]
+    },
+    {
+      "id": "platforms",
+      "type": "number",
+      "question": "How many ATS platforms does it claim to work with?",
+      "check": "number",
+      "answer": 50,
+      "tol": 0
+    },
+    {
+      "id": "names",
+      "type": "fine detail",
+      "question": "Name three of the ATS platforms shown.",
+      "check": "judge",
+      "answer": "Any three of: Workday, Greenhouse, Lever, Ashby, BambooHR, Bullhorn, Personio, Jobvite, Comeet, JazzHR, Workable, Recruitee, Teamtailor, Breezy, iCIMS, Pinpoint, SmartRecruiters, Rippling."
+    },
+    {
+      "id": "dropoff",
+      "type": "fine detail",
+      "question": "In the live monitoring view, at which funnel stage is a drop-off flagged, and how big is it?",
+      "check": "judge",
+      "answer": "At the Phone Screen stage, a 42% drop-off."
+    },
+    {
+      "id": "ask",
+      "type": "short event",
+      "question": "What question is typed into the 'Ask your data' box?",
+      "check": "judge",
+      "answer": "Why did time-to-hire increase this quarter?"
+    },
+    {
+      "id": "nomore",
+      "type": "short event",
+      "question": "The video says something is no longer needed. What?",
+      "check": "contains",
+      "answer": [
+        "deck"
+      ]
+    },
+    {
+      "id": "recipients",
+      "type": "counting",
+      "question": "How many recipients or groups receive the weekly performance report?",
+      "check": "number",
+      "answer": 4,
+      "tol": 0
+    },
+    {
+      "id": "order",
+      "type": "ordering",
+      "question": "Which comes first: the 'Recommendations' section or the 'Weekly Performance Report'?",
+      "check": "judge",
+      "answer": "The Recommendations section comes first."
+    },
+    {
+      "id": "logo_time",
+      "type": "timing",
+      "question": "At about what time (in seconds) does the full-screen logo first appear?",
+      "check": "number",
+      "answer": 6,
+      "tol": 2
+    },
+    {
+      "id": "closing",
+      "type": "fact recall",
+      "question": "What is the closing tagline?",
+      "check": "judge",
+      "answer": "Run recruiting on intelligence. Not intuition."
+    },
+    {
+      "id": "cta",
+      "type": "fact recall",
+      "question": "What is the call to action at the very end?",
+      "check": "contains",
+      "answer": [
+        "demo"
+      ]
+    },
+    {
+      "id": "price",
+      "type": "hallucination check",
+      "question": "Is any price or pricing plan shown in the video? Answer yes or no.",
+      "check": "yesno",
+      "answer": "no"
+    }
+  ]
+}
