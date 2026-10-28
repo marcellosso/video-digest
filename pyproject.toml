@@ -41,6 +41,7 @@ video-digest-mcp = "video_digest.mcp_server:main"
 dev = ["pytest>=8"]
 bench = ["anthropic>=2.3"]
 mcp = ["mcp>=2,<3"]
+transcript = ["faster-whisper>=1.1"]
 
 [tool.hatch.version]
 path = "src/video_digest/__init__.py"
@@ -54,3 +55,4 @@ packages = ["src/video_digest"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["tests", "."]
+markers = ["live_stt: runs a real Whisper model (needs the transcript extra and VIDEO_DIGEST_LIVE_STT=1)"]

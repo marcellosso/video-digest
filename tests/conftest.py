@@ -59,3 +59,45 @@ def video(tmp_path_factory):
     p = tmp_path_factory.mktemp("video") / "synthetic.mp4"
     make_video(p)
     return p
+
+
+@pytest.fixture(scope="session")
+def tone_video(tmp_path_factory):
+    """4 s of solid color with a 440 Hz tone: a video with an audio track, but no speech."""
+    if not shutil.which("ffmpeg"):
+        pytest.skip("ffmpeg not installed")
+    p = tmp_path_factory.mktemp("video") / "tone.mp4"
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error",
+         "-f", "lavfi", "-i", f"color=c=navy:s={W}x{H}:r={FPS}:d=4",
+         "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=44100:duration=4",
+         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", str(p)],
+        check=True)
+    return p
+
+
+class FakeWhisper:
+    """Stands in for faster_whisper.WhisperModel: fixed segments, records each call."""
+
+    SEGMENTS = [(0.0, 1.5, " Hello there."), (1.5, 2.0, "  "), (2.0, 3.25, " Click save now.")]
+
+    def __init__(self):
+        self.calls = []
+
+    def transcribe(self, audio, **kwargs):
+        from types import SimpleNamespace
+        self.calls.append((audio, kwargs))
+        segs = (SimpleNamespace(start=s, end=e, text=t) for s, e, t in self.SEGMENTS)
+        return segs, SimpleNamespace(language="en")
+
+
+@pytest.fixture
+def fake_whisper(monkeypatch):
+    """Transcribe with FakeWhisper instead of a real model; works without the extra."""
+    from video_digest import transcript
+    model = FakeWhisper()
+    loaded = []
+    monkeypatch.setattr(transcript, "require", lambda: None)
+    monkeypatch.setattr(transcript, "_load_model", lambda name: loaded.append(name) or model)
+    model.loaded = loaded
+    return model

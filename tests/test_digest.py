@@ -21,7 +21,7 @@ def test_digest_folder_layout(digest):
     assert (digest.path / "digest.json").is_file()
     assert (digest.path / "digest.md").is_file()
     data = json.loads((digest.path / "digest.json").read_text())
-    assert data["format_version"] == 1
+    assert data["format_version"] == 2
     assert (data["width"], data["height"]) == (W, H)
     assert data["duration"] == pytest.approx(9.0, abs=0.1)
     assert data["keyframes"] and data["sheets"]

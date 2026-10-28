@@ -44,12 +44,27 @@ def test_digest_video_returns_timeline_and_sheets(video, cache):
     images = [b for b in content if b.type == "image"]
     assert len(images) == 1
     assert decode(images[0]).size[0] > 0
-    assert "Transcript: requested" not in meta
+    assert "Transcript:" not in meta
 
 
-def test_transcript_flag_is_accepted_but_deferred(video, cache):
-    content = call("digest_video", path=str(video), cache_dir=cache, transcript=True)
-    assert "not implemented yet" in content[0].text
+def test_transcript_flag_runs_speech_to_text(tone_video, cache, fake_whisper):
+    content = call("digest_video", path=str(tone_video), cache_dir=cache, transcript=True)
+    assert "Transcript: 2 segment(s), whisper base" in content[0].text
+    assert "[00:02.0 – 00:03.2] Click save now." in content[1].text
+    again = call("digest_video", path=str(tone_video), cache_dir=cache, transcript=True)
+    assert "reused from cache" in again[0].text and len(fake_whisper.calls) == 1
+    # get_frames finds the transcript digest and saves into it.
+    one = call("get_frames", path=str(tone_video), timestamps=[1.0], cache_dir=cache)
+    assert "/frames/at_1.00.jpg" in one[0].text
+
+
+def test_transcript_without_extra_is_a_tool_error(tone_video, cache, monkeypatch):
+    from video_digest import transcript
+    def missing():
+        raise transcript.TranscriptUnavailable("transcript needs the 'transcript' extra")
+    monkeypatch.setattr(transcript, "require", missing)
+    with pytest.raises(ToolError, match="'transcript' extra"):
+        mcp_server.digest_video(str(tone_video), transcript=True, cache_dir=cache)
 
 
 def test_get_frames_after_digest_does_not_rebuild(video, cache, monkeypatch):
