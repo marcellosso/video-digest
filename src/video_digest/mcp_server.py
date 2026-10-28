@@ -15,9 +15,8 @@ from __future__ import annotations
 from io import BytesIO
 from typing import Annotated
 
-from pydantic import Field
-
 try:
+    from pydantic import Field  # installed with mcp
     from mcp.server.mcpserver import Image, MCPServer
     from mcp.server.mcpserver.exceptions import ToolError
 except ImportError as e:  # pragma: no cover

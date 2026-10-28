@@ -1,18 +1,37 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]  # PEP 639 license metadata
 build-backend = "hatchling.build"
 
 [project]
 name = "video-digest"
-version = "0.1.0.dev0"
+dynamic = ["version"]
 description = "Turn a video into a compact digest (keyframes, contact sheets, timeline) that AI models can read cheaply"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
+authors = [{ name = "Marcel Losso" }]
+keywords = ["video", "keyframes", "contact-sheet", "llm", "multimodal", "mcp", "screen-recording"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "numpy>=1.24",
     "pillow>=10.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/marcellosso/video-digest"
+Source = "https://github.com/marcellosso/video-digest"
+Issues = "https://github.com/marcellosso/video-digest/issues"
 
 [project.scripts]
 video-digest = "video_digest.cli:main"
@@ -22,6 +41,12 @@ video-digest-mcp = "video_digest.mcp_server:main"
 dev = ["pytest>=8"]
 bench = ["anthropic>=2.3"]
 mcp = ["mcp>=2,<3"]
+
+[tool.hatch.version]
+path = "src/video_digest/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = [".github"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/video_digest"]
