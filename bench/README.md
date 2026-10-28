@@ -83,7 +83,7 @@ Checks that a run can't measure show as **N/A** and don't fail the run, so read 
    ```
    If the change is accepted, replace `reference-results.json` with the new `results.json` in the same PR. Set its `"video"` field to the bare file name so no local path is committed.
 
-Try a setting without editing code: `--set threshold=2.0 --set min_gap=1.0`.
+Try a setting without editing code: `--set threshold=2.0 --set min_gap=1.0`. To eyeball what a setting keeps on one video, the engine CLI takes the same flag: `video-digest build my.mp4 --set threshold=2.0`, then open the printed sheet, or zoom with `video-digest frames my.mp4 12.5 13`.
 
 ## Tests
 
