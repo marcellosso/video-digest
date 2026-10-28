@@ -1,0 +1,11 @@
+{
+  "name": "video-digest",
+  "displayName": "Video Digest",
+  "version": "0.1.0",
+  "description": "Answer questions about a local video (screen recording, bug repro, demo) from a cheap digest: keyframe timeline, contact sheets, and zoom-in frames",
+  "author": { "name": "Marcel Losso" },
+  "homepage": "https://github.com/marcellosso/video-digest",
+  "repository": "https://github.com/marcellosso/video-digest",
+  "license": "Apache-2.0",
+  "keywords": ["video", "screen-recording", "mcp", "multimodal"]
+}

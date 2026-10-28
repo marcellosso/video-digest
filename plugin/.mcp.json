@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "video-digest": {
+      "command": "${VIDEO_DIGEST_MCP:-video-digest-mcp}",
+      "env": {
+        "VIDEO_DIGEST_CACHE": "${HOME}/.cache/video-digest"
+      }
+    }
+  }
+}
