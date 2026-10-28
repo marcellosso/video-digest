@@ -190,20 +190,11 @@ class Digest:
         Selection knobs can be passed as a SelectSettings or as keyword
         overrides, e.g. Digest.build("v.mp4", threshold=2.0, min_gap=1.0).
         """
-        video = os.path.abspath(video)
-        if not os.path.isfile(video):
-            raise FileNotFoundError(video)
-        settings = dataclasses.replace(settings or SelectSettings(), **overrides)
-        fhash = file_hash(video)
-        key = f"{fhash[:16]}-{settings_hash(settings)[:8]}"
-        root = Path(cache_dir) if cache_dir is not None else default_cache_dir()
+        video, fhash, key, root, settings = _cache_slot(video, cache_dir, settings, overrides)
         target = root / key
 
-        if not force and (target / "digest.json").is_file():
-            try:
-                return cls.load(target, video=video)
-            except (ValueError, KeyError, json.JSONDecodeError):
-                pass  # unreadable or stale cache: rebuild
+        if not force and (cached := cls._load_cached(target, video)) is not None:
+            return cached
 
         root.mkdir(parents=True, exist_ok=True)
         tmp = Path(tempfile.mkdtemp(prefix=f".{key}-", dir=root))
@@ -216,6 +207,22 @@ class Digest:
             shutil.rmtree(tmp, ignore_errors=True)
             raise
         return cls(target, data, video)
+
+    @classmethod
+    def cached(cls, video: str | os.PathLike, *, cache_dir: str | os.PathLike | None = None,
+               settings: SelectSettings | None = None, **overrides) -> Digest | None:
+        """The cached digest `build` would reuse for these arguments, or None. Never builds."""
+        video, _, key, root, _ = _cache_slot(video, cache_dir, settings, overrides)
+        return cls._load_cached(root / key, video)
+
+    @classmethod
+    def _load_cached(cls, target: Path, video: str) -> Digest | None:
+        if not (target / "digest.json").is_file():
+            return None
+        try:
+            return cls.load(target, video=video)
+        except (ValueError, KeyError, json.JSONDecodeError):
+            return None  # unreadable or stale cache: rebuild
 
     @classmethod
     def load(cls, path: str | os.PathLike, video: str | None = None) -> Digest:
@@ -286,6 +293,18 @@ class Digest:
                 "type": "base64", "media_type": "image/jpeg",
                 "data": base64.b64encode(p.read_bytes()).decode()}})
         return blocks
+
+
+def _cache_slot(video, cache_dir, settings, overrides) -> tuple[str, str, str, Path, SelectSettings]:
+    """(absolute video path, file hash, cache key, cache root, settings) for a build."""
+    video = os.path.abspath(video)
+    if not os.path.isfile(video):
+        raise FileNotFoundError(video)
+    settings = dataclasses.replace(settings or SelectSettings(), **overrides)
+    fhash = file_hash(video)
+    key = f"{fhash[:16]}-{settings_hash(settings)[:8]}"
+    root = Path(cache_dir) if cache_dir is not None else default_cache_dir()
+    return video, fhash, key, root, settings
 
 
 def _build_into(out: Path, video: str, fhash: str, key: str, settings: SelectSettings) -> dict:
