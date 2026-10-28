@@ -14,6 +14,9 @@ dependencies = [
     "pillow>=10.1",
 ]
 
+[project.scripts]
+video-digest = "video_digest.cli:main"
+
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 bench = ["anthropic>=2.3"]

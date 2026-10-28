@@ -1,7 +1,7 @@
 # video-digest
 Open-source engine: video → digest (keyframes / contact sheets + timeline) so AI models read fewer tokens with better accuracy
 
-> Early development. The engine and benchmark work locally; the CLI and MCP server are not built yet.
+> Early development. The engine, CLI and benchmark work locally; the MCP server is not built yet.
 
 ## Install (local, editable)
 
@@ -11,7 +11,21 @@ Requires Python 3.11+ and `ffmpeg`/`ffprobe` on your `PATH`.
 uv venv && uv pip install -e '.[dev]'      # or: python -m venv .venv && pip install -e '.[dev]'
 ```
 
-## Usage
+## Command line
+
+```bash
+video-digest build bug-repro.mp4               # digest folder, keyframe timeline, sheet paths
+video-digest build bug-repro.mp4 --timeline    # print the full text timeline (digest.md)
+video-digest build bug-repro.mp4 --json        # machine-readable summary
+video-digest frames bug-repro.mp4 12.5         # full-resolution frame -> ./at_12.50.jpg
+video-digest frames bug-repro.mp4 12.5 0:13 14.2 -o zoom/   # one labeled sheet (2-9 timestamps)
+```
+
+`python -m video_digest ...` is the same thing. `build` takes `--cache-dir`, `--force` and `--set KNOB=VALUE` (selection overrides, repeatable). Timestamps are seconds or `[hh:]mm:ss[.f]`.
+
+Exit status: 0 success, 1 ffmpeg failed on the file (not a video, corrupt), 2 usage error or missing video, 3 ffmpeg/ffprobe not on `PATH`.
+
+## Python
 
 ```python
 from video_digest import Digest
