@@ -3,14 +3,15 @@
 A digest is a plain folder, so any tool or model can read it:
 
     .video-digest/<key>/
-      digest.json      # metadata, settings, keyframes, transcript
+      digest.json      # metadata, settings, keyframes, transcript (null unless requested)
       digest.md        # the text timeline sent to the model
       sheets/          # sheet_01.jpg, sheet_02.jpg, ...
       frames/          # zoomed frames fetched later via Digest.frames()
 
 <key> is "<file-hash>-<settings-hash>": the first 16 hex chars of the video's
-SHA-256, then 8 of a hash over the selection settings and format version.
-Building the same file with the same settings reuses the folder.
+SHA-256, then 8 of a hash over the selection settings, the transcript model
+(if a transcript was requested) and the format version. Building the same
+file with the same settings reuses the folder.
 """
 from __future__ import annotations
 
@@ -30,13 +31,15 @@ from pathlib import Path
 from PIL import Image
 
 from . import __version__
+from . import transcript as _transcript
 from .sample import grab_frame, iter_thumbnails, probe
 from .select import SelectSettings, select_keyframes
 from .sheets import PER_SHEET, TILE_WIDTH, fmt_ts, tile_sheet, write_sheets
 
 # Bump when the folder layout, digest.json schema or selection output changes,
 # so stale caches are rebuilt instead of reused.
-FORMAT_VERSION = 1
+# 2: "transcript" became {model, language, has_audio, segments: [{start, end, text}]}.
+FORMAT_VERSION = 2
 DEFAULT_CACHE_DIR = ".video-digest"
 MAX_FRAMES = PER_SHEET
 
@@ -49,9 +52,10 @@ def file_hash(path: str | os.PathLike, chunk: int = 1 << 20) -> str:
     return h.hexdigest()
 
 
-def settings_hash(settings: SelectSettings) -> str:
+def settings_hash(settings: SelectSettings, transcript_model: str | None = None) -> str:
     payload = json.dumps({"format": FORMAT_VERSION, "tile_width": TILE_WIDTH,
-                          "per_sheet": PER_SHEET, **dataclasses.asdict(settings)},
+                          "per_sheet": PER_SHEET, "transcript": transcript_model,
+                          **dataclasses.asdict(settings)},
                          sort_keys=True)
     return hashlib.sha256(payload.encode()).hexdigest()
 
@@ -157,12 +161,22 @@ def timeline_text(d: dict) -> str:
             notes.append("final state of scene")
         lines.append(f"  #{i + 1:<3} {fmt_ts(k['t'])} – {fmt_ts(k['until'])}"
                      f"  ({', '.join(notes)})")
-    if d.get("transcript"):
-        lines += ["", "Transcript:"] + [f"  [{fmt_ts(s['start'])}] {s['text']}"
-                                        for s in d["transcript"]]
-    else:
-        lines += ["", "Transcript: not available (no speech-to-text run)."]
+    lines += [""] + _transcript_lines(d.get("transcript"))
     return "\n".join(lines) + "\n"
+
+
+def _transcript_lines(tr: dict | None) -> list[str]:
+    if tr is None:
+        return ["Transcript: not available (speech-to-text was not requested)."]
+    if not tr["has_audio"]:
+        return ["Transcript: none (the video has no audio track)."]
+    if not tr["segments"]:
+        return ["Transcript: no speech detected."]
+    lang = f", language {tr['language']}" if tr.get("language") else ""
+    return ([f"Transcript (local speech-to-text, whisper {tr['model']}{lang}; "
+             "may contain recognition errors):"]
+            + [f"  [{fmt_ts(s['start'])} – {fmt_ts(s['end'])}] {s['text']}"
+               for s in tr["segments"]])
 
 
 class Digest:
@@ -184,22 +198,31 @@ class Digest:
     @classmethod
     def build(cls, video: str | os.PathLike, *, cache_dir: str | os.PathLike | None = None,
               force: bool = False, settings: SelectSettings | None = None,
+              transcript: bool = False, transcript_model: str | None = None,
               **overrides) -> Digest:
         """Build (or reuse from cache) the digest of a local video file.
 
         Selection knobs can be passed as a SelectSettings or as keyword
         overrides, e.g. Digest.build("v.mp4", threshold=2.0, min_gap=1.0).
+
+        transcript=True also runs local speech-to-text (needs the 'transcript'
+        extra; the Whisper model downloads on first use). transcript_model
+        picks the model (default $VIDEO_DIGEST_WHISPER_MODEL or "base").
         """
-        video, fhash, key, root, settings = _cache_slot(video, cache_dir, settings, overrides)
+        model = _model(transcript, transcript_model)
+        video, fhash, key, root, settings = _cache_slot(video, cache_dir, settings, overrides,
+                                                        model)
         target = root / key
 
         if not force and (cached := cls._load_cached(target, video)) is not None:
             return cached
+        if model is not None:
+            _transcript.require()  # fail before decoding anything
 
         root.mkdir(parents=True, exist_ok=True)
         tmp = Path(tempfile.mkdtemp(prefix=f".{key}-", dir=root))
         try:
-            data = _build_into(tmp, video, fhash, key, settings)
+            data = _build_into(tmp, video, fhash, key, settings, model)
             if target.exists():
                 shutil.rmtree(target)
             os.replace(tmp, target)
@@ -210,9 +233,11 @@ class Digest:
 
     @classmethod
     def cached(cls, video: str | os.PathLike, *, cache_dir: str | os.PathLike | None = None,
-               settings: SelectSettings | None = None, **overrides) -> Digest | None:
+               settings: SelectSettings | None = None, transcript: bool = False,
+               transcript_model: str | None = None, **overrides) -> Digest | None:
         """The cached digest `build` would reuse for these arguments, or None. Never builds."""
-        video, _, key, root, _ = _cache_slot(video, cache_dir, settings, overrides)
+        video, _, key, root, _ = _cache_slot(video, cache_dir, settings, overrides,
+                                             _model(transcript, transcript_model))
         return cls._load_cached(root / key, video)
 
     @classmethod
@@ -255,6 +280,11 @@ class Digest:
         return self.data["keyframes"]
 
     @property
+    def transcript(self) -> dict | None:
+        """{model, language, has_audio, segments}, or None if no transcript was requested."""
+        return self.data["transcript"]
+
+    @property
     def settings(self) -> SelectSettings:
         return SelectSettings(**self.data["settings"])
 
@@ -295,19 +325,26 @@ class Digest:
         return blocks
 
 
-def _cache_slot(video, cache_dir, settings, overrides) -> tuple[str, str, str, Path, SelectSettings]:
+def _model(transcript: bool, transcript_model: str | None) -> str | None:
+    """The Whisper model a build uses, or None when no transcript is requested."""
+    return (transcript_model or _transcript.default_model()) if transcript else None
+
+
+def _cache_slot(video, cache_dir, settings, overrides,
+                transcript_model) -> tuple[str, str, str, Path, SelectSettings]:
     """(absolute video path, file hash, cache key, cache root, settings) for a build."""
     video = os.path.abspath(video)
     if not os.path.isfile(video):
         raise FileNotFoundError(video)
     settings = dataclasses.replace(settings or SelectSettings(), **overrides)
     fhash = file_hash(video)
-    key = f"{fhash[:16]}-{settings_hash(settings)[:8]}"
+    key = f"{fhash[:16]}-{settings_hash(settings, transcript_model)[:8]}"
     root = Path(cache_dir) if cache_dir is not None else default_cache_dir()
     return video, fhash, key, root, settings
 
 
-def _build_into(out: Path, video: str, fhash: str, key: str, settings: SelectSettings) -> dict:
+def _build_into(out: Path, video: str, fhash: str, key: str, settings: SelectSettings,
+                transcript_model: str | None = None) -> dict:
     t0 = time.time()
     info = probe(video)
     samples = list(iter_thumbnails(video, settings.sample_fps, info))
@@ -317,6 +354,8 @@ def _build_into(out: Path, video: str, fhash: str, key: str, settings: SelectSet
     tiles = [grab_frame(video, k["t"], TILE_WIDTH, duration=info.duration) for k in keyframes]
     labels = [f"#{i + 1}  {fmt_ts(k['t'])}" for i, k in enumerate(keyframes)]
     sheet_paths = write_sheets(tiles, labels, out / "sheets")
+    transcript = (_transcript.transcribe(video, transcript_model)
+                  if transcript_model is not None else None)
     data = {
         "format_version": FORMAT_VERSION,
         "engine_version": __version__,
@@ -329,7 +368,7 @@ def _build_into(out: Path, video: str, fhash: str, key: str, settings: SelectSet
         "settings": dataclasses.asdict(settings),
         "keyframes": keyframes,
         "sheets": [p.relative_to(out).as_posix() for p in sheet_paths],
-        "transcript": None,
+        "transcript": transcript,
         "build_seconds": round(time.time() - t0, 2),
     }
     (out / "digest.json").write_text(json.dumps(data, indent=2))

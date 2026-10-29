@@ -1,6 +1,7 @@
 """Command line: video-digest {build,frames} ...
 
     video-digest build VIDEO                build (or reuse) the digest, print a summary
+    video-digest build VIDEO --transcript   ... with local speech-to-text (needs the extra)
     video-digest frames VIDEO T1 [T2 ...]   zoom: one full frame, or one sheet for 2-9 timestamps
 
 Timestamps are seconds (12.5) or [hh:]mm:ss[.f] (1:02.5). Pass --json for
@@ -8,7 +9,8 @@ machine-readable output on stdout. `python -m video_digest` works the same.
 
 Exit status: 0 on success, 1 when ffmpeg fails on the video (not a video,
 corrupt, no video stream), 2 on usage errors (bad arguments, missing video
-file), 3 when ffmpeg/ffprobe are not installed.
+file, --transcript without the 'transcript' extra), 3 when ffmpeg/ffprobe
+are not installed.
 """
 from __future__ import annotations
 
@@ -26,6 +28,7 @@ from .digest import MAX_FRAMES, Digest, get_frames
 from .sample import FFmpegError
 from .select import SelectSettings
 from .sheets import fmt_ts
+from .transcript import TranscriptUnavailable
 
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_NO_FFMPEG = 0, 1, 2, 3
 
@@ -50,6 +53,12 @@ def parser() -> argparse.ArgumentParser:
     b.add_argument("--force", action="store_true", help="rebuild even if a cached digest exists")
     b.add_argument("--set", action="append", default=[], metavar="KNOB=VALUE",
                    help="selection setting override, e.g. --set threshold=2.0 (repeatable)")
+    b.add_argument("--transcript", action="store_true",
+                   help="add a local speech-to-text transcript (needs the 'transcript' extra; "
+                   "downloads the Whisper model on first use)")
+    b.add_argument("--transcript-model", metavar="MODEL",
+                   help="Whisper model for --transcript: tiny, base, small, ... or a local "
+                   "model folder (default $VIDEO_DIGEST_WHISPER_MODEL or base)")
     b.add_argument("--timeline", action="store_true",
                    help="print the full text timeline (digest.md) instead of the summary")
     b.add_argument("--json", action="store_true", help="print a JSON summary instead")
@@ -118,9 +127,15 @@ def _rel(p: Path) -> str:
 def build(args) -> int:
     _preflight(args.video)
     overrides = _settings(args.set)
+    if args.transcript_model and not args.transcript:
+        raise CliError("--transcript-model needs --transcript", EXIT_USAGE)
     t0 = time.time()
     try:
-        d = Digest.build(args.video, cache_dir=args.cache_dir, force=args.force, **overrides)
+        d = Digest.build(args.video, cache_dir=args.cache_dir, force=args.force,
+                         transcript=args.transcript, transcript_model=args.transcript_model,
+                         **overrides)
+    except TranscriptUnavailable as e:
+        raise CliError(str(e), EXIT_USAGE)
     except ValueError as e:  # nothing decodable in the file
         raise CliError(str(e), EXIT_FAILED)
     # A fresh build writes digest.json after t0; a cache hit leaves the old one.
@@ -132,6 +147,7 @@ def build(args) -> int:
             "keyframes": [k["t"] for k in d.keyframes],
             "sheets": [str(p.absolute()) for p in d.sheets],
             "timeline": str((d.path / "digest.md").absolute()),
+            "transcript": d.transcript,
             "build_seconds": d.data["build_seconds"], "cached": cached,
         }, indent=2))
         return EXIT_OK
@@ -144,6 +160,9 @@ def build(args) -> int:
           f"{len(d.keyframes)} keyframes in {len(d.sheets)} sheet(s)")
     for i, k in enumerate(d.keyframes):
         print(f"  #{i + 1:<3} {fmt_ts(k['t'])} – {fmt_ts(k['until'])}")
+    if (tr := d.transcript) is not None:
+        print(f"Transcript: {len(tr['segments'])} segment(s), whisper {tr['model']}"
+              + ("" if tr["has_audio"] else " (no audio track)"))
     print(f"Timeline: {_rel(d.path / 'digest.md')}")
     for p in d.sheets:
         print(f"Sheet:    {_rel(p)}")

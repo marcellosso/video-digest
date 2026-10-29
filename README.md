@@ -2,7 +2,7 @@
 
 Turn a video into a compact digest that an AI model can read cheaply: a short list of keyframes, laid out on labeled contact sheets, plus a text timeline. The model answers from the digest and asks for a full-resolution frame only where it needs a closer look.
 
-It ships as a Python library, a CLI, an MCP server for coding agents, and a Claude Code plugin. It runs locally on top of `ffmpeg` and never calls a model itself.
+It ships as a Python library, a CLI, an MCP server for coding agents, and a Claude Code plugin. It runs locally on top of `ffmpeg` and never calls a hosted model. An optional transcript runs speech-to-text on your machine.
 
 > Early development (`0.1.0.dev0`). Everything below works from a clone. Nothing is on PyPI yet.
 
@@ -42,7 +42,7 @@ Run the CLI once without installing anything, straight from GitHub:
 uvx --from git+https://github.com/marcellosso/video-digest video-digest build demo.mp4
 ```
 
-Extras: `mcp` (MCP server), `bench` (live benchmark runs, Anthropic SDK), `dev` (pytest).
+Extras: `mcp` (MCP server), `transcript` (local speech-to-text, see [Transcript](#transcript-optional)), `bench` (live benchmark runs, Anthropic SDK), `dev` (pytest).
 
 After a PyPI release this becomes `uvx video-digest build demo.mp4`, `pip install video-digest` and `uvx --from 'video-digest[mcp]' video-digest-mcp`. The package name isn't final yet, see [PACKAGING.md](https://github.com/marcellosso/video-digest/blob/main/PACKAGING.md).
 
@@ -68,9 +68,9 @@ Timeline: .video-digest/2c6d9fb18fb5a0a4-58d19347/digest.md
 Sheet:    .video-digest/2c6d9fb18fb5a0a4-58d19347/sheets/sheet_01.jpg
 ```
 
-Hand `digest.md` and the sheet images to any model. `python -m video_digest ...` is the same CLI. `build` takes `--cache-dir`, `--force` and `--set KNOB=VALUE` (selection overrides, repeatable). Timestamps are seconds or `[hh:]mm:ss[.f]`.
+Hand `digest.md` and the sheet images to any model. `python -m video_digest ...` is the same CLI. `build` takes `--cache-dir`, `--force`, `--set KNOB=VALUE` (selection overrides, repeatable) and `--transcript` (see [Transcript](#transcript-optional)). Timestamps are seconds or `[hh:]mm:ss[.f]`.
 
-Exit status: 0 success, 1 ffmpeg failed on the file (not a video, corrupt), 2 usage error or missing video, 3 ffmpeg/ffprobe not on `PATH`.
+Exit status: 0 success, 1 ffmpeg failed on the file (not a video, corrupt), 2 usage error, missing video or `--transcript` without the extra, 3 ffmpeg/ffprobe not on `PATH`.
 
 ## Quickstart: Python
 
@@ -87,13 +87,15 @@ blocks = d.to_content("anthropic")        # timeline + sheets as content blocks
 
 Selection knobs are keyword overrides, for example `Digest.build(path, threshold=2.0, min_gap=1.0)`. See `video_digest.SelectSettings` for all of them. Each distinct setting combination gets its own cache folder.
 
+`Digest.build(path, transcript=True)` adds a speech transcript (see below), and `d.transcript` returns it.
+
 `get_frames(path, timestamps)` zooms without building a digest first. `Digest.cached(path)` returns the cached digest, or `None` if there isn't one. It never builds.
 
 ## MCP server
 
 Gives coding agents (Claude Code, Claude Desktop, Cursor, Codex) two tools over stdio. Needs the `mcp` extra. The server never calls a model.
 
-- `digest_video(path, transcript=false, force=false, cache_dir=null)`: builds or reuses the digest. Returns a summary (digest folder, duration, keyframe and sheet counts), the text timeline and the contact sheets as JPEG images. `transcript` is accepted but has no effect until speech-to-text lands (#7).
+- `digest_video(path, transcript=false, force=false, cache_dir=null)`: builds or reuses the digest. Returns a summary (digest folder, duration, keyframe and sheet counts), the text timeline and the contact sheets as JPEG images. `transcript=true` adds a local speech-to-text transcript to the timeline. The server must be installed with the `transcript` extra for this, and otherwise the call fails with an error that says so.
 - `get_frames(path, timestamps, cache_dir=null)`: 1 timestamp returns the full-resolution frame, and 2 to 9 return one labeled sheet. It never builds a digest. If the video already has one, the image is also saved in its `frames/` folder.
 
 An agent can digest a video once and then zoom in as often as it likes without a rebuild.
@@ -122,6 +124,36 @@ Claude Desktop (`claude_desktop_config.json`) and other clients that use the `mc
 ```
 
 Use absolute paths for the command and for videos. Set `VIDEO_DIGEST_CACHE` because clients may start the server in a directory it can't write to. Otherwise the default `./.video-digest` is resolved from wherever the server was started. `ffmpeg` and `ffprobe` must be on the server's `PATH`. If your client launches it with a minimal `PATH`, add one in `env`.
+
+## Transcript (optional)
+
+The digest can include a timestamped transcript of what is said in the video. Speech-to-text runs locally with [faster-whisper](https://github.com/SYSTRAN/faster-whisper). Nothing is sent to a cloud service. The transcript is **off by default**, and a build without it never imports or downloads anything speech-related.
+
+```bash
+uv pip install -e '.[transcript]'                       # or '.[mcp,transcript]'
+video-digest build talk.mp4 --transcript --timeline
+```
+
+```python
+d = Digest.build("talk.mp4", transcript=True)
+d.transcript["segments"]   # [{"start": 0.0, "end": 5.9, "text": "Hi, this is a short bug report..."}, ...]
+```
+
+The segments are appended to `digest.md`:
+
+```
+Transcript (local speech-to-text, whisper base, language en; may contain recognition errors):
+  [00:00.0 – 00:05.9] Hi, this is a short bug report, I open the settings page and click save, nothing happens,
+  [00:05.9 – 00:07.4] and the console shows an error.
+```
+
+- **Model.** The default is Whisper `base` (multilingual, ~145 MB), run on the CPU with int8 weights. Choose another with `--transcript-model` / `transcript_model=` or `VIDEO_DIGEST_WHISPER_MODEL`. `tiny` is smaller and makes more mistakes. `small` is more accurate and about 3x slower. Names ending in `.en` are English-only. A path to a local CTranslate2 model folder also works. Each model gets its own cache folder.
+- **First run.** The first transcript build downloads the model from the Hugging Face Hub into the Hugging Face cache (`~/.cache/huggingface/hub`, or `HF_HOME`), which takes a few seconds to a minute. Later runs load it from disk and work offline. Set `HF_HUB_OFFLINE=1` to make sure nothing is fetched.
+- **CPU cost.** With `base` on a recent laptop CPU, transcription runs several times faster than real time (a 15 s clip builds in about 2 s, after the model is downloaded), so a 10-minute recording adds roughly a minute or two. Silence is skipped by a voice-activity filter. `tiny` is faster, and `small` is several times slower. No GPU is needed.
+- **Language** is detected automatically from the first 30 s.
+- **No audio track or no speech.** The timeline says so. No model is loaded for a video without audio.
+
+The transcript is a hint for the model reading the digest. Whisper can mishear words, and the benchmark numbers above don't use it.
 
 ## Claude Code plugin
 
@@ -155,7 +187,7 @@ To check the plugin layout, run `claude plugin validate ./plugin`. The plugin is
 
 ```
 .video-digest/<file-hash>-<settings-hash>/
-  digest.json      # metadata, settings, keyframes, transcript (null for now)
+  digest.json      # metadata, settings, keyframes, transcript (null unless requested)
   digest.md        # the text timeline sent to the model
   sheets/          # sheet_01.jpg, sheet_02.jpg, …
   frames/          # zoomed frames saved by Digest.frames()
@@ -200,7 +232,13 @@ uv venv && uv pip install -e '.[dev,bench,mcp]'
 .venv/bin/pytest
 ```
 
-The tests build synthetic videos with ffmpeg and never call a model. CI runs them plus the offline synthetic benchmark.
+The tests build synthetic videos with ffmpeg and never call a model. Transcript tests use a fake Whisper model. To run the one live speech-to-text test (needs the `transcript` extra and macOS `say` or `espeak-ng`, and downloads the model):
+
+```bash
+uv pip install -e '.[transcript]' && VIDEO_DIGEST_LIVE_STT=1 .venv/bin/pytest -m live_stt
+```
+
+ CI runs them plus the offline synthetic benchmark.
 
 ## License
 
